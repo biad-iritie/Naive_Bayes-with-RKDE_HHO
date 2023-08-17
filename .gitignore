@@ -1,0 +1,12 @@
+__pycache__/
+.ipynb_checkpoints
+**/*.pyc
+**/*.directory
+**/*.pdf
+*~
+**/*.swp
+**/*.orig
+**/*.dot
+**/.~lock*
+
+/out
