@@ -24,7 +24,7 @@ class Density_model:
         self.auc_anomaly = None
         self.X_data = None
 
-    def fit(self, X, X_plot, grid, k='auto', norm_mom=True, hstd_mom=False):
+    def fit(self, X, X_plot, grid):
         if self.algo == 'kde':
             self.density, self.model = kde_lib.kde(X,
                                                    X_plot,
