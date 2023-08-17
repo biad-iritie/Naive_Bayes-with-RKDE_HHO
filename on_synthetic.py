@@ -14,7 +14,7 @@ algos = [
 ]
 
 # Synth params
-dim = 2
+dim = 1
 n_samples = 500
 outlier_scheme = 'uniform'
 #outlier_scheme = 'reg_gaussian'
