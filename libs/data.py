@@ -7,7 +7,7 @@ from scipy.stats import norm as sci_norm
 from scipy.stats import multivariate_normal as sci_multinorm
 
 current_file = os.path.dirname(os.path.abspath(__file__))
-path_data = os.path.join(current_file, '../datasets/')
+path_data = os.path.join(current_file, '../data')
 
 datasets_asc = [
     'banana',
@@ -20,7 +20,9 @@ def load_data(dataset):
     """
     Load dataset (from path or scikit learn repo)
     """
+
     full_path = path_data + '/' + dataset + '/' + dataset
+    print(full_path)
     if dataset in datasets_asc:
         X1 = np.loadtxt(full_path + '_train_data_1.asc')
         X2 = np.loadtxt(full_path + '_test_data_1.asc')

@@ -57,15 +57,7 @@ for i_exp in range(n_exp):
         h_cvgrid, _, _ = kde_lib.bandwidth_cvgrid(X_inlier)
         #h = h_cvgrid
         true_dens = data.true_density_situations(X_plot)
-        # set range for k (number blocks)
-        if epsilon == 0:
-            k_range = [1]
-        else:
-            if epsilon < (1 / 3):
-                k_max = 2 * n_outliers + 1
-            else:
-                k_max = X.shape[0] / 2
-            k_range = np.linspace(1, k_max, 20).astype(int)
+
         #  Processing all algos
         for algo in algos:
             print('\nAlgo: ', algo)

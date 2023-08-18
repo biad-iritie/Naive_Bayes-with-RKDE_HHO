@@ -50,7 +50,7 @@ def set_algoname(algo):
 # =======================================================
 #   Parameters
 # =======================================================
-score_file = 'scores_D_1_uniform.csv'
+score_file = 'scores_iris.csv'
 
 # Which metric ?
 # metric = 'jensen'
@@ -68,7 +68,7 @@ datasets = [
     # 'titanic',
     # 'german',
     # 'sk-breast-cancer',
-    # 'iris',
+    'iris',
     # 'digits_0',
     # 'digits_1',
     # 'digits_2',
@@ -82,7 +82,7 @@ datasets = [
     # 'digits_1_0',
     # 'digits_0_1',
 
-    'D_1_uniform',
+    # 'D_1_uniform',
     # 'D_1_reg_gaussian',
     # 'D_1_thin_gaussian',
     # 'D_1_adversarial',
