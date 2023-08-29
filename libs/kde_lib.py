@@ -264,7 +264,7 @@ def pso_bandwidth_selection(data, X_plot, objective=ucv_objective, inertia=.8, c
 
 #!
 # Created by "Boli" at 14:51, 17/08/2023 ----------%
-#       Email: biadboze@gmail.com@gmail.com            %
+#       Email: biadboze@gmail.com            %
 #       Github: https://github.com/biad-iritie        %
 # --------------------------------------------------%
 
@@ -318,9 +318,9 @@ def hho_bandwith_selection(data, X_plot):
         lb=np.array([.1]), ub=np.array([1]), minmax="min", obj_weights=[1, 1], data=data, X_plot=X_plot)
     # Define the model and solve the problem
     # epoch = 1000
-    epoch = 100  # maximum number of iterations
+    epoch = 10  # 50 maximum number of iterations
     # pop_size = 50
-    pop_size = 50  # number of population size
+    pop_size = 10  # 10 number of population size
     model = OriginalHHO(epoch, pop_size)
     best_position, best_fitness = model.solve(problem_multi)
     print("Result hho_bandwith_selection: {}".format(best_position))

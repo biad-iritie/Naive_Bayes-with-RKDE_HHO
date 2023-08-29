@@ -1,1 +1,16 @@
 Loaded banana data: 5300 samples, 2 dimensions, 2 labels
+
+[-1.  1.]
+[-1.  1.]
+Accuracy 1: 0.7
+precision 1: 0.8763636363636363
+recall 1: 0.35233918128654973
+f1 1: 0.502606882168926
+
+
+Accuracy 2: 0.6245283018867924
+precision 2: 0.6118251928020566
+recall 2: 0.347953216374269
+f1 2: 0.4436160298229264
+
+
