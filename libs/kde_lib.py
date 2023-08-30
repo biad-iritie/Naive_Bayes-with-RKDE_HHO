@@ -212,6 +212,14 @@ def bandwidth_cvgrid(X_data, loo=False, kfold=5):
     # print('best h: ', h)
     return h, sigma, losses
 
+# Method for bandwidth selection in RKDE
+
+#!
+# Created by "Boli" at 14:51, 17/08/2023 ----------%
+#       Email: biadboze@gmail.com            %
+#       Github: https://github.com/biad-iritie        %
+# --------------------------------------------------%
+
 
 def ucv_objective(bandwidth, data, X_plot):
     n = len(data)
@@ -259,14 +267,6 @@ def pso_bandwidth_selection(data, X_plot, objective=ucv_objective, inertia=.8, c
             swarm[i] = np.clip(swarm[i], bandwidth_min, bandwidth_max)
 
     return best_global_position[0]
-
-# Step 3: Implement HHO for bandwidth selection in RKDE
-
-#!
-# Created by "Boli" at 14:51, 17/08/2023 ----------%
-#       Email: biadboze@gmail.com            %
-#       Github: https://github.com/biad-iritie        %
-# --------------------------------------------------%
 
 
 class HHO_BandwidthSelection(Problem):
