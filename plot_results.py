@@ -50,7 +50,7 @@ def set_algoname(algo):
 # =======================================================
 #   Parameters
 # =======================================================
-score_file = 'scores_synthetic_data1.csv'
+score_file = 'scores_D_2_uniform.csv'
 
 # Which metric ?
 # metric = 'jensen'
@@ -81,11 +81,11 @@ datasets = [
     # 'digits_9',
     # 'digits_1_0',
     # 'digits_0_1',
-
-    'D_1_uniform',
+    # 'D_1_uniform',
     # 'D_1_reg_gaussian',
     # 'D_1_thin_gaussian',
     # 'D_1_adversarial',
+    'D_2_uniform'
 ]
 
 # Which methods to plot ?
@@ -123,8 +123,9 @@ LEFT = 0.19
 # =======================================================
 #   Processing
 # =======================================================
-outlierprop_range = [0.001, 0.02, 0.05,
-                     0.07, 0.09, 0.11, 0.13, 0.16, 0.18, 0.2]
+#outlierprop_range = [0.001, 0.02, 0.05,0.07, 0.09, 0.11, 0.13, 0.16, 0.18, 0.2]
+outlierprop_range = [0.001, 0.07, 0.09, 0.13, 0.16, 0.2]
+
 x_plot = outlierprop_range
 
 scores = pd.read_csv(path_scores + score_file)

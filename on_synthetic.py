@@ -15,18 +15,18 @@ algos = [
 ]
 
 # Synth params
-dim = 1
+dim = 2
 n_samples = 500
 outlier_scheme = 'uniform'
 #outlier_scheme = 'reg_gaussian'
 #outlier_scheme = 'thin_gaussian'
 # outlier_scheme = 'adversarial'
 
-#dataset = ('D_' + str(dim) + '_' + outlier_scheme)
-X0, y0 = make_classification(
+dataset = ('D_' + str(dim) + '_' + outlier_scheme)
+""" X0, y0 = make_classification(
     500, n_features=2, n_redundant=0, n_informative=2, random_state=0, n_clusters_per_class=1
-)
-dataset = "synthetic_data"
+) """
+#dataset = "synthetic_data"
 
 #outlierprop_range = [0.001, 0.02, 0.05,0.07, 0.09, 0.11, 0.13, 0.16, 0.18, 0.2]
 outlierprop_range = [0.001, 0.07, 0.09, 0.13, 0.16, 0.2]
@@ -66,12 +66,12 @@ for i_exp in range(n_exp):
     for i_outlierprop, outlier_prop in enumerate(outlierprop_range):
         print('\nOutlier prop: {} ({} / {})'.format(outlier_prop,
               i_outlierprop + 1, len(outlierprop_range)))
-        """ epsilon = outlier_prop / (1 - outlier_prop)
+        epsilon = outlier_prop / (1 - outlier_prop)
         X, y = data.generate_situations(n_samples,
                                         outlier_prop,
                                         outlier_scheme=outlier_scheme,
-                                        dim=dim) """
-        X, y = generate_outliers(X0, y0, outlier_prop)
+                                        dim=dim)
+        #X, y = generate_outliers(X0, y0, outlier_prop)
         #  Grid on which to evaluate densities
         grid, X_plot = data.make_grid(X, grid_points)
         n_outliers = np.sum(y == 0)
