@@ -12,14 +12,22 @@ from libs.exp_lib import Density_model
 from sklearn.naive_bayes import GaussianNB
 
 
-class RobustNaiveBayes_HHO(BaseEstimator, ClassifierMixin):
+list_selection = ["hho", "pso"]
 
-    def __init__(self) -> None:
+
+class RobustNaiveBayes(BaseEstimator, ClassifierMixin):
+
+    def __init__(self, h_selection="hho") -> None:
         self.class_priors = None
         self.classes = None
         self.kernel = 'gaussian'
         self.classifiers = {}  # Store GaussianNB classifiers for each class
         self.robust_densities = {}  # Store robust densities for each class
+        if h_selection in list_selection:
+            self.h_selection = h_selection
+        else:
+            raise ValueError(
+                'Should choose a bandwith selection between this list{}'.format(list_selection))
 
     def fit(self, X, y):
         """
@@ -45,8 +53,12 @@ class RobustNaiveBayes_HHO(BaseEstimator, ClassifierMixin):
             self.classifiers[class_label] = GaussianNB()
             self.classifiers[class_label].fit(class_data, y[class_indices])
 
-            bandwidth = kde_lib.hho_bandwith_selection(class_data, class_data)
-            model = Density_model("rkde", "", 0, self.kernel, bandwidth)
+            """ if self.h_selection == "hoo":
+                bandwidth = kde_lib.hho_bandwith_selection(
+                    class_data, class_data) """
+
+            model = Density_model("rkde", "", 0, self.kernel, kde_lib.selection_bandwidth(
+                self.h_selection, class_data))
             model.fit(class_data, class_data, grid=None)
             rkde = model.density
             self.robust_densities[class_label] = rkde[:, 0]

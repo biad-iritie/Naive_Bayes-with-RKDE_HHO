@@ -1,12 +1,11 @@
 import numpy as np
 from sklearn.neighbors import KernelDensity
-from scipy.spatial.distance import euclidean
 from sklearn.metrics.pairwise import rbf_kernel
 from cvxopt import matrix, solvers
 from sklearn.model_selection import GridSearchCV, LeaveOneOut, KFold
 from mealpy.swarm_based.HHO import OriginalHHO
 from mealpy.utils.problem import Problem
-from scipy.stats import norm
+from scipy import stats
 
 
 def gaussian_kernel(X, h, d):
@@ -222,30 +221,58 @@ def bandwidth_cvgrid(X_data, loo=False, kfold=5):
 # --------------------------------------------------%
 
 
-def ucv_objective(bandwidth, data, X_plot):
-    n = len(data)
-    kde_values = rkde(data, X_plot, bandwidth)
-    error = np.sum((1 / (n * bandwidth)) - kde_values)**2
-    return error
+def ls_ucv_objective(bandwidth, data):
+    sep = int(len(data) * .8)
+    train_data = data[:sep]
+    test_data = data[sep:]
+    squared_differences = []
+    bandwidth = bandwidth[0]
+
+    for test_point in test_data:
+        # Fit KDE without the left-out data point
+        kde = KernelDensity(kernel="gaussian", bandwidth=bandwidth)
+        kde.fit(train_data)
+        # Calculate the value of the KDE at the left-out data point
+        log_density = kde.score_samples(test_point.reshape(1, -1))
+        estimated_density = np.exp(log_density)
+        # Calculate the squared difference
+        squared_diff = (estimated_density - (1 / len(train_data))) ** 2
+        squared_differences.append(squared_diff)
+
+    return np.mean(squared_differences)
 
 
-def bcv_objective(bandwidth, data, X_plot):
-    n = len(data)
-    h = 1.06 * np.std(data) * (n**(-1/5))  # Silverman's rule of thumb
-    kde_values = rkde(data, X_plot, bandwidth)
-    error = np.sum((1 / (n * h)) - kde_values)**2
-    return error
+def bcv_objective(bandwidth, data):
+    sep = int(len(data) * .8)
+    train_data = data[:sep]
+    test_data = data[sep:]
+    squared_differences = []
+    bandwidth = bandwidth[0]
+    bias_correction = -0.5 * np.log(2 * np.pi * bandwidth ** 2)
+
+    for test_point in test_data:
+        # Fit KDE without the left-out data point
+        kde = KernelDensity(kernel="gaussian", bandwidth=bandwidth)
+        kde.fit(train_data)
+        # Calculate the value of the KDE at the left-out data point
+        log_density = kde.score_samples(test_point.reshape(1, -1))
+        estimated_density = np.exp(log_density + bias_correction)
+        # Calculate the squared difference
+        squared_diff = (estimated_density - (1 / len(train_data))) ** 2
+        squared_differences.append(squared_diff)
+
+    return np.mean(squared_differences)
 
 
-def pso_bandwidth_selection(data, X_plot, objective=ucv_objective, inertia=.8, cognitive_weight=2.8):
-    num_particles = 5
+def pso_bandwidth_selection(data, objective=bcv_objective, inertia=.8, cognitive_weight=2.8):
+    num_particles = 10
     num_iterations = 10
     bandwidth_min = 0.1
     bandwidth_max = 1.
     # x= np.linspace(min(data), max(data), len(data))
 
     def fitness(position):
-        return objective(position, data, X_plot)
+        return objective(position, data)
 
     best_global_position = None
     best_global_fitness = float('inf')
@@ -266,7 +293,7 @@ def pso_bandwidth_selection(data, X_plot, objective=ucv_objective, inertia=.8, c
             # Update position
             swarm[i] += velocities[i]
             swarm[i] = np.clip(swarm[i], bandwidth_min, bandwidth_max)
-
+    print("Result pso_bandwith_selection: {}".format(best_global_position[0]))
     return best_global_position[0]
 
 
@@ -278,77 +305,24 @@ class HHO_BandwidthSelection(Problem):
         self.ub = ub
         self.minmax = minmax
         self.data = kwargs["data"]
-        self.X_plot = kwargs["X_plot"]
 
-    def bcv_objective(self, bandwidth):
-        sep = int(len(self.data) * .8)
-        train_data = self.data[:sep]
-        test_data = self.data[sep:]
-        squared_differences = []
-        bias_correction = -0.5 * np.log(2 * np.pi * bandwidth ** 2)
-        bandwidth = bandwidth[0]
-        for test_point in test_data:
-            # Fit KDE without the left-out data point
-            kde = KernelDensity(kernel="gaussian", bandwidth=bandwidth)
-            kde.fit(train_data)
-            # Calculate the value of the KDE at the left-out data point
-            log_density = kde.score_samples(test_point.reshape(1, -1))
-            estimated_density = np.exp(log_density + bias_correction)
-            # Calculate the squared difference
-            squared_diff = (estimated_density - (1 / len(train_data))) ** 2
-            squared_differences.append(squared_diff)
+    def obj_func1(self, bandwidth):
+        return bcv_objective(bandwidth, self.data)
 
-        return np.mean(squared_differences)
-
-    def _bcv_objective(self, bandwidth):
-        data = self.data
-        X_plot = self.X_plot
-        n = len(data)
-        h = 1.06 * np.std(data) * (n**(-1/5))  # Silverman's rule of thumb
-        kde_values = rkde(data, X_plot, bandwidth)
-        # error = np.sum((1 / (n * bandwidth)) - kde_values)**2
-        error = (1 / (n * h)) * np.sum(kde_values)**2
-        return error
-
-    def ls_ucv_objective(self, bandwidth):
-        sep = int(len(self.data) * .8)
-        train_data = self.data[:sep]
-        test_data = self.data[sep:]
-        squared_differences = []
-        bandwidth = bandwidth[0]
-
-        for test_point in test_data:
-            # Fit KDE without the left-out data point
-            kde = KernelDensity(kernel="gaussian", bandwidth=bandwidth)
-            kde.fit(train_data)
-            # Calculate the value of the KDE at the left-out data point
-            log_density = kde.score_samples(test_point.reshape(1, -1))
-            estimated_density = np.exp(log_density)
-            # Calculate the squared difference
-            squared_diff = (estimated_density - (1 / len(train_data))) ** 2
-            squared_differences.append(squared_diff)
-
-        return np.mean(squared_differences)
-
-    def _ls_ucv_objective(self, bandwidth):
-        data = self.data
-        X_plot = self.X_plot
-        n = len(data)
-        kde_values = rkde(data, X_plot, bandwidth)
-        error = np.sum((1 / (n * bandwidth)) - kde_values)**2
-        return error
+    def obj_func2(self, bandwidth):
+        return ls_ucv_objective(bandwidth, self.data)
 
     def fit_func(self, solution):
-        return [self.bcv_objective(solution), self.ls_ucv_objective(solution)]
+        return [self.obj_func1(solution), self.obj_func2(solution)]
 
     def get_name(self):
         return "HHO for Bandwidth Selection"
 
 
-def hho_bandwith_selection(data, X_plot):
+def hho_bandwith_selection(data):
 
     problem_multi = HHO_BandwidthSelection(
-        lb=np.array([.1]), ub=np.array([1]), minmax="min", obj_weights=[1, 1], data=data, X_plot=X_plot)
+        lb=np.array([.1]), ub=np.array([1]), minmax="min", obj_weights=[1, 1], data=data)
     # Define the model and solve the problem
     # epoch = 1000
     epoch = 10  # 50 maximum number of iterations
@@ -358,3 +332,15 @@ def hho_bandwith_selection(data, X_plot):
     best_position, best_fitness = model.solve(problem_multi)
     print("Result hho_bandwith_selection: {}".format(best_position))
     return best_position[0]
+
+
+def rot_bandwidth_selection(data):
+    iqr = stats.iqr(data, interpolation="midpoint")
+    pass
+
+
+def selection_bandwidth(sel: str, data):
+    if sel == "hho":
+        return hho_bandwith_selection(data)
+    if sel == "pso":
+        return pso_bandwidth_selection(data)
