@@ -10,7 +10,7 @@ import numpy as np
 from libs import kde_lib
 from libs.exp_lib import Density_model
 from sklearn.naive_bayes import GaussianNB
-
+from scipy.stats import norm
 
 list_selection = ["hho", "pso"]
 
@@ -83,6 +83,8 @@ class RobustNaiveBayes(BaseEstimator, ClassifierMixin):
                 classifier = self.classifiers[class_label]
                 robust_density = self.robust_densities[class_label]
                 # Calculate the likelihood using the robust density and GaussianNB classifier
+                """ likelihoods.append(np.prod(
+                    norm.pdf(sample, loc=robust_density.mean(), scale=robust_density.std()))) """
                 log_likelihood = classifier.predict_joint_log_proba(
                     sample.reshape(1, -1))
                 likelihood = np.prod(
