@@ -322,12 +322,12 @@ class HHO_BandwidthSelection(Problem):
 def hho_bandwith_selection(data):
 
     problem_multi = HHO_BandwidthSelection(
-        lb=np.array([.1]), ub=np.array([1]), minmax="min", obj_weights=[1, 1], data=data)
+        lb=np.array([.1]), ub=np.array([.99]), minmax="min", obj_weights=[.5, .5], data=data)
     # Define the model and solve the problem
     # epoch = 1000
-    epoch = 10  # 50 maximum number of iterations
+    epoch = 15  # 50 maximum number of iterations
     # pop_size = 50
-    pop_size = 10  # 10 number of population size
+    pop_size = 20  # 10 number of population size
     model = OriginalHHO(epoch, pop_size)
     best_position, best_fitness = model.solve(problem_multi)
     print("Result hho_bandwith_selection: {}".format(best_position))

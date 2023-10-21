@@ -38,11 +38,11 @@ def set_metricname(metric):
 
 def set_algoname(algo):
     if algo == 'kde':
-        return 'KDE'
+        return 'NB+KDE'
     elif algo == 'spkde':
-        return 'SPKDE'
+        return 'NB+SPKDE'
     elif algo == 'rkde':
-        return 'RKDE'
+        return 'NB+RKDE'
     else:
         return algo
 
