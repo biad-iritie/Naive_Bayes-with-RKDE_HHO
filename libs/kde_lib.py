@@ -221,47 +221,61 @@ def bandwidth_cvgrid(X_data, loo=False, kfold=5):
 # --------------------------------------------------%
 
 
-def ls_ucv_objective(bandwidth, data):
+def ucv_objective(bandwidth, data):
     sep = int(len(data) * .8)
     train_data = data[:sep]
     test_data = data[sep:]
     squared_differences = []
     bandwidth = bandwidth[0]
+    ucv_values = []
 
-    for test_point in test_data:
-        # Fit KDE without the left-out data point
-        kde = KernelDensity(kernel="gaussian", bandwidth=bandwidth)
-        kde.fit(train_data)
+    # Fit KDE without the left-out data point
+    kde = KernelDensity(kernel="gaussian", bandwidth=bandwidth)
+    kde.fit(data)
+    for point in data:
         # Calculate the value of the KDE at the left-out data point
-        log_density = kde.score_samples(test_point.reshape(1, -1))
+        log_density = kde.score_samples(point.reshape(1, -1))
         estimated_density = np.exp(log_density)
         # Calculate the squared difference
-        squared_diff = (estimated_density - (1 / len(train_data))) ** 2
-        squared_differences.append(squared_diff)
-
-    return np.mean(squared_differences)
+        ucv_values.append(estimated_density / (1 - estimated_density))
+    # print("UCV:{}".format(np.mean(ucv_values)))
+    return np.mean(ucv_values)
 
 
 def bcv_objective(bandwidth, data):
-    sep = int(len(data) * .8)
+    sep = int(len(data) * .7)
     train_data = data[:sep]
     test_data = data[sep:]
     squared_differences = []
     bandwidth = bandwidth[0]
-    bias_correction = -0.5 * np.log(2 * np.pi * bandwidth ** 2)
-
-    for test_point in test_data:
-        # Fit KDE without the left-out data point
-        kde = KernelDensity(kernel="gaussian", bandwidth=bandwidth)
-        kde.fit(train_data)
+    bcv_values = []
+    # bias_correction = -0.5 * np.log(2 * np.pi * bandwidth ** 2)
+    # Fit KDE without the left-out data point
+    # print(bandwidth)
+    kde = KernelDensity(kernel="gaussian", bandwidth=bandwidth)
+    kde.fit(data)
+    """ for test_point in data:
         # Calculate the value of the KDE at the left-out data point
         log_density = kde.score_samples(test_point.reshape(1, -1))
         estimated_density = np.exp(log_density + bias_correction)
         # Calculate the squared difference
-        squared_diff = (estimated_density - (1 / len(train_data))) ** 2
-        squared_differences.append(squared_diff)
+        squared_diff = (estimated_density - (1 / estimated_density))
+        squared_differences.append(squared_diff) """
+    for i in range(len(data)):
+        x_i = data[i]
+        x_rest = np.delete(data, i, axis=0)
+        # Calculate the density estimate without x_i
+        kde.fit(x_rest)
+        density_rest = np.exp(kde.score_samples(x_i.reshape(1, -1)))
+        # Calculate BCV for x_i
+        bcv_values.append(density_rest)
+    # print("BCV:{}".format(np.mean(bcv_values)))
 
-    return np.mean(squared_differences)
+    return np.mean(bcv_values)
+
+
+def bootstrap_objective():
+    pass
 
 
 def pso_bandwidth_selection(data, objective=bcv_objective, inertia=.8, cognitive_weight=2.8):
@@ -310,7 +324,7 @@ class HHO_BandwidthSelection(Problem):
         return bcv_objective(bandwidth, self.data)
 
     def obj_func2(self, bandwidth):
-        return ls_ucv_objective(bandwidth, self.data)
+        return ucv_objective(bandwidth, self.data)
 
     def fit_func(self, solution):
         return [self.obj_func1(solution), self.obj_func2(solution)]
@@ -322,15 +336,20 @@ class HHO_BandwidthSelection(Problem):
 def hho_bandwith_selection(data):
 
     problem_multi = HHO_BandwidthSelection(
-        lb=np.array([.1]), ub=np.array([.99]), minmax="min", obj_weights=[.5, .5], data=data)
+        lb=np.array([.1]), ub=np.array([1]), minmax="min",
+        obj_weights=[1, 1],
+        data=data,
+        save_population=True)
     # Define the model and solve the problem
     # epoch = 1000
-    epoch = 15  # 50 maximum number of iterations
+    epoch = 5  # 50 maximum number of iterations
     # pop_size = 50
-    pop_size = 20  # 10 number of population size
+    pop_size = 10  # 10 number of population size
     model = OriginalHHO(epoch, pop_size)
     best_position, best_fitness = model.solve(problem_multi)
     print("Result hho_bandwith_selection: {}".format(best_position))
+    """ print("\n")
+    print(len(model.history.list_population)) """
     return best_position[0]
 
 

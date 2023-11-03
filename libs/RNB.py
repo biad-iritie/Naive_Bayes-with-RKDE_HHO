@@ -56,9 +56,9 @@ class RobustNaiveBayes(BaseEstimator, ClassifierMixin):
             """ if self.h_selection == "hoo":
                 bandwidth = kde_lib.hho_bandwith_selection(
                     class_data, class_data) """
-
-            model = Density_model("rkde", "", 0, self.kernel, kde_lib.selection_bandwidth(
-                self.h_selection, class_data))
+            bandwidth = kde_lib.selection_bandwidth(
+                self.h_selection, class_data)
+            model = Density_model("rkde", "", 0, self.kernel, bandwidth)
             model.fit(class_data, class_data, grid=None)
             rkde = model.density
             self.robust_densities[class_label] = rkde[:, 0]
